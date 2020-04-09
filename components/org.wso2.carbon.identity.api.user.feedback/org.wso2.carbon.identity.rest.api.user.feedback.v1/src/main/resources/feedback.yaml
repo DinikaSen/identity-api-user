@@ -1,0 +1,374 @@
+swagger: '2.0'
+info:
+  version: v1
+  title: 'WSO2 Identity Server User Feedback Management Rest API '
+  description: >
+    This document specifies a **RESTfulAPI** for **user feedback management** in WSO2 **Identity Server**.
+
+    It is written with [swagger 2](http://swagger.io/).
+  contact:
+    name: WSO2
+    url: 'http://wso2.com/products/identity-server/'
+    email: architecture@wso2.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+schemes:
+  - https
+basePath: '/t/{tenant_context}/api/users/v1'
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - OAuth2: []
+  - BasicAuth: []
+paths:
+  /feedback:
+    post:
+      description: |
+        This API is used to submit feedback given by users
+
+         <b>Permission required:</b> none
+
+      summary: |
+        Submit a user feedback
+      parameters:
+        - name: body
+          in: body
+          description: User feedback to be submitted
+          required: true
+          schema:
+            $ref: '#/definitions/FeedbackRequest'
+      responses:
+        '201':
+          description: Feedback submission successful
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+    get:
+      description: |
+        This API returns user feedback messages according to the specified filter, sort, and pagination parameters.
+
+      summary: |
+        Retrieve submitted feedbacks
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: filter
+          in: query
+          description: Filter expression for filtering
+          required: false
+          type: string
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          type: integer
+          format: int32
+          default: 30
+          minimum: 0
+        - name: offset
+          in: query
+          description: Number of records to skip for pagination.
+          required: false
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+        - name: sortBy
+          in: query
+          description: |-
+            Specifies the attribute whose value
+            SHALL be used to order the returned responses
+          required: false
+          type: string
+        - name: sortOder
+          in: query
+          description: The order in which the "sortBy" parameter is applied.
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Valid feedbacks are found
+          schema:
+            $ref: '#/definitions/FeedbackListResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: No feedback found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+  /feedback/{id}:
+    get:
+      description: |
+        This API is used to retrieve a feedback by ID.
+
+      summary: |
+        Retrieve a submitted feedback by ID
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: id
+          in: path
+          description: This represents the ID of the user feedback
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Feedback found
+          schema:
+            $ref: '#/definitions/FeedbackResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+    delete:
+      description: |
+        This API is used to delete a feedback by ID
+
+      summary: |
+        Delete a feedback by ID
+      parameters:
+        - name: id
+          in: path
+          description: feedbackID
+          required: true
+          type: string
+      responses:
+        '204':
+          description: No content
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+    put:
+      description: |
+        This API is used to update feedback entries
+
+      summary: |
+        Update a feedback entry
+      parameters:
+        - name: id
+          in: path
+          description: feedbackID
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: User feedback data to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/FeedbackUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/FeedbackResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+
+
+definitions:
+
+  #----------------------------------------------------
+  # The Feedbacks POST Object
+  #----------------------------------------------------
+  FeedbackRequest:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        type: string
+        example: "This is a sample feedback"
+      email:
+        type: string
+        example: "kim@gmail.com"
+      contactNo:
+        type: string
+        example: "0123456789"
+      tags:
+        type: array
+        items:
+          type: string
+          example: "issue"
+
+
+  #----------------------------------------------------
+  # The Feedbacks PUT Request Object
+  #----------------------------------------------------
+  FeedbackUpdateRequest:
+    type: object
+    properties:
+      message:
+        type: string
+        example: "This is a sample feedback"
+      email:
+        type: string
+        example: "kim@gmail.com"
+      contactNo:
+        type: string
+        example: "0123456789"
+      tags:
+        type: array
+        items:
+          type: string
+          example: "issue"
+
+  #-----------------------------------------------------
+  # The Feedbacks List Response Object
+  #----------------------------------------------------
+  FeedbackListResponse:
+    type: object
+    properties:
+      totalResults:
+        type: integer
+        example: 3
+      startIndex:
+        type: integer
+        example: 1
+      itemsPerPage:
+        type: integer
+        example: 3
+      resources:
+        type: array
+        items:
+          $ref: "#/definitions/FeedbackResponse"
+      links:
+        type: array
+        description: Navigation links.
+        items:
+          $ref: '#/definitions/Link'
+        example:
+          - href: '/t/carbon.super/api/user/v1/feedback?offset=10&limit=10'
+            rel: 'next'
+          - href: '/t/carbon.super/api/user/v1/feedback?offset=0&limit=5'
+            rel: 'previous'
+          - href: '/t/carbon.super/api/user/v1/feedback?offset=0&limit=10'
+            rel: 'first'
+          - href: '/t/carbon.super/api/user/v1/feedback?offset=20&limit=10'
+            rel: 'last'
+
+
+  #-----------------------------------------------------
+  # The Feedback GET Response Object
+  #----------------------------------------------------
+  FeedbackResponse:
+    type: object
+    properties:
+      meta:
+        type: object
+        properties:
+          created:
+            type: string
+            example: '2020-03-25T11:27:36'
+          location:
+            type: string
+            example: 'https://localhost:9443/feedback/7bac6a86-1f21-4937-9fb1-5be4a93ef469'
+      id:
+        type: string
+        example: '7bac6a86-1f21-4937-9fb1-5be4a93ef469'
+      message:
+        type: string
+        example: "This is a sample feedback"
+      email:
+        type: string
+        example: 'kim@gmail.com'
+      contactNo:
+        type: string
+        example: '0123456789'
+      tags:
+        type: array
+        items:
+          type: string
+          example: "issue"
+
+  #---------------------------------------------------
+  # The Link Object
+  #---------------------------------------------------
+  Link:
+    type: object
+    properties:
+      href:
+        type: string
+        format: uri
+        description: Path to the target resource.
+      rel:
+        type: string
+        description: Describes how the current context is related to the target resource.
+
+  #-----------------------------------------------------
+  # The Error Object
+  #-----------------------------------------------------
+  Error:
+    type: object
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      description:
+        type: string
+      traceId:
+        type: string
+
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  OAuth2:
+    type: oauth2
+    flow: accessCode
+    authorizationUrl: 'https://localhost:9443/oauth2/authorize'
+    tokenUrl: 'https://localhost:9443/oauth2/token'
+host: 'localhost:9443'

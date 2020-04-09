@@ -288,6 +288,12 @@
                 <artifactId>commons-lang</artifactId>
                 <version>${commons-lang.wso2.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.cloud.user.feedback</groupId>
+                <artifactId>org.wso2.carbon.identity.cloud.user.feedback.mgt</artifactId>
+                <version>${cloud.user.feedback.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!-- Kernel Dependencies-->
             <dependency>
@@ -421,6 +427,7 @@
         <identity.totp.version>2.1.4</identity.totp.version>
         <maven.checkstyleplugin.excludes>**/gen/**/*</maven.checkstyleplugin.excludes>
         <commons-lang.wso2.version>2.6.0.wso2v1</commons-lang.wso2.version>
+        <cloud.user.feedback.version>1.0-SNAPSHOT</cloud.user.feedback.version>
     </properties>
 
     <modules>
@@ -434,7 +441,7 @@
         <module>components/org.wso2.carbon.identity.api.user.totp</module>
         <module>components/org.wso2.carbon.identity.api.user.application</module>
         <module>components/org.wso2.carbon.identity.api.user.recovery</module>
+        <module>components/org.wso2.carbon.identity.api.user.feedback</module>
     </modules>
 
 </project>
-
