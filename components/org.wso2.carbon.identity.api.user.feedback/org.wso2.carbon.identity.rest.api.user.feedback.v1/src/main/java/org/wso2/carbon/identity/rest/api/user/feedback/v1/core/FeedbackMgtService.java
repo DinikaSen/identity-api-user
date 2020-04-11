@@ -36,7 +36,6 @@ import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.LinkDTO;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,19 +72,17 @@ public class FeedbackMgtService {
 
     /**
      * List user feedback entries.
-     *
-     *
      */
-    public FeedbackListResponseDTO getFeedbacks(String filter, int limit, int offset, String sortBy,
+    public FeedbackListResponseDTO listFeedback(String filter, int limit, int offset, String sortBy,
                                                 String sortOrder) {
 
-        String filterFormatted = buildFilter(filter);
+//        validateSortingParameters(sortBy, sortOrder);
         try {
             List<Feedback> feedbackInfoList = FeedbackMgtServiceHolder.getFeedbackManagementService().
-                    listFeedbackEntries(filterFormatted, limit, offset, sortBy, sortOrder);
-            /*int totalApps = FeedbackMgtServiceHolder.getFeedbackManagementService()
-                    .getCountOfFeedbacks(filterFormatted);*/
-            return buildFeedbackListResponse(limit, offset, feedbackInfoList.size(), feedbackInfoList);
+                    listFeedbackEntries(filter, limit, offset, sortBy, sortOrder);
+            int totalResults = FeedbackMgtServiceHolder.getFeedbackManagementService()
+                    .getCountOfFeedbackResults(filter);
+            return buildFeedbackListResponse(limit, offset, totalResults, feedbackInfoList);
 
         } catch (FeedbackManagementException e) {
             throw handleException(e, FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_FEEDBACK,
@@ -102,7 +99,6 @@ public class FeedbackMgtService {
     public FeedbackResponseDTO getFeedback(String feedbackId) {
 
         try {
-
             Feedback feedbackInfo =
                     FeedbackMgtServiceHolder.getFeedbackManagementService().
                             getFeedbackEntry(feedbackId);
@@ -122,33 +118,53 @@ public class FeedbackMgtService {
      */
     public void deleteFeedback(String feedbackId) {
 
-        if (isFeedbackEntryAvailable(feedbackId)) {
-            try {
-                FeedbackMgtServiceHolder.getFeedbackManagementService().deleteFeedbackEntry(feedbackId);
-            } catch (FeedbackManagementException e) {
-                throw handleException(e, ERROR_CODE_ERROR_DELETING_FEEDBACK, Response.Status.INTERNAL_SERVER_ERROR);
-            }
+        try {
+            FeedbackMgtServiceHolder.getFeedbackManagementService().deleteFeedbackEntry(feedbackId);
+        } catch (FeedbackManagementException e) {
+            throw handleException(e, ERROR_CODE_ERROR_DELETING_FEEDBACK, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    /**
+     * Update a user feedback entry.
+     *
+     * @param updateRequestDTO FeedbackObjectDTO object.
+     */
+    public FeedbackResponseDTO updateFeedbackEntry(String feedbackId, FeedbackRequestDTO updateRequestDTO) {
+
+        Feedback feedback = createFeedbackObject(updateRequestDTO);
+        try {
+            Feedback feedbackResult =
+                    FeedbackMgtServiceHolder.getFeedbackManagementService().updateFeedbackEntry(feedbackId, feedback);
+            return buildFeedbackResponse(feedbackResult);
+        } catch (FeedbackManagementException e) {
+            throw handleException(e, FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_ADDING_FEEDBACK,
+                    Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Create feedback object.
      *
-     * @param feedbackPostRequest FeedbackObjectDTO
+     * @param feedbackRequest FeedbackObjectDTO
      * @return feedback Feedback Object
      */
-    private Feedback createFeedbackObject(FeedbackRequestDTO feedbackPostRequest) {
+    private Feedback createFeedbackObject(FeedbackRequestDTO feedbackRequest) {
 
         Feedback feedback = new Feedback();
-        feedback.setMessage(feedbackPostRequest.getMessage());
-        if (feedbackPostRequest.getEmail() != null && StringUtils.isNotBlank(feedbackPostRequest.getEmail())) {
-            feedback.setEmail(feedbackPostRequest.getEmail());
+        feedback.setMessage(feedbackRequest.getMessage());
+        if (feedbackRequest.getMessage() != null && StringUtils.isNotBlank(feedbackRequest.getMessage())) {
+            feedback.setMessage(feedbackRequest.getMessage());
         }
-        if (feedbackPostRequest.getContactNo() != null && StringUtils.isNotBlank(feedbackPostRequest.getContactNo())) {
-            feedback.setContactNo(feedbackPostRequest.getContactNo());
+        if (feedbackRequest.getEmail() != null && StringUtils.isNotBlank(feedbackRequest.getEmail())) {
+            feedback.setEmail(feedbackRequest.getEmail());
         }
-        if (feedbackPostRequest.getTags() != null && !feedbackPostRequest.getTags().isEmpty()) {
-            feedback.setTags((ArrayList<String>) feedbackPostRequest.getTags());
+        if (feedbackRequest.getContactNo() != null && StringUtils.isNotBlank(feedbackRequest.getContactNo())) {
+            feedback.setContactNo(feedbackRequest.getContactNo());
+        }
+        if (feedbackRequest.getTags() != null && !feedbackRequest.getTags().isEmpty()) {
+            feedback.setTags((ArrayList<String>) feedbackRequest.getTags());
         }
         return feedback;
     }
@@ -159,7 +175,7 @@ public class FeedbackMgtService {
     }
 
     private FeedbackListResponseDTO buildFeedbackListResponse(int limit, int offset, int total,
-                                                                 List<Feedback> feedbackInfos) {
+                                                              List<Feedback> feedbackInfos) {
 
         List<FeedbackResponseDTO> feedbackInfoList = buildFeedbackListResponses(feedbackInfos);
         List<LinkDTO> feedbackResponseLinks = buildPaginationLinks(limit, offset, total);
@@ -218,62 +234,35 @@ public class FeedbackMgtService {
         return links;
     }
 
-    private String buildFilter(String filter) {
+ /*   private boolean validateSortingParameters(String sortBy, String sortOrder) {
 
-        if (StringUtils.isNotBlank(filter)) {
-            String[] filterArgs = filter.split(" ");
-            if (filterArgs.length == 3) {
-
-                String filterAttribute = filterArgs[0];
-
-                if (isFilterableAttribute(filterAttribute)) {
-                    String operation = filterArgs[1];
-                    String attributeValue = filterArgs[2];
-                    return generateFilterStringForBackend(operation, attributeValue);
+        boolean isValid = false;
+        if (StringUtils.isNotBlank(sortBy) && StringUtils.isNotBlank(sortOrder)) {
+            if (isSortableAttribute(sortBy)) {
+                if (isSortableAttribute(sortBy)) {
+                    isValid = true;
                 } else {
-                    throw buildError(ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE, Response.Status.BAD_REQUEST,
-                            filterAttribute);
+                    throw buildError(ERROR_CODE_INVALID_SORT_ORDER, Response.Status.BAD_REQUEST,
+                            sortOrder);
                 }
             } else {
-                throw buildError(ERROR_CODE_INVALID_FILTER_QUERY, Response.Status.BAD_REQUEST);
+                throw buildError(ERROR_CODE_UNSUPPORTED_SORT_BY_ATTRIBUTE, Response.Status.BAD_REQUEST,
+                        sortBy);
             }
-        } else {
-            return null;
-        }
-    }
-
-    private String generateFilterStringForBackend(String operation, String attributeValue) {
-
-        String formattedFilter = null;
-        try {
-            switch (AttributeOperators.valueOf(operation)) {
-                case sw:
-                    formattedFilter = attributeValue + "*";
-                    break;
-                case ew:
-                    formattedFilter = "*" + attributeValue;
-                    break;
-                case eq:
-                    formattedFilter = attributeValue;
-                    break;
-                case co:
-                    formattedFilter = "*" + attributeValue + "*";
-                    break;
-            }
-        } catch (IllegalArgumentException e) {
-            throw handleException(e, ERROR_CODE_UNSUPPORTED_FILTER_OPERATION, Response.Status.BAD_REQUEST, operation);
 
         }
+        return isValid;
+    }*/
 
-        return formattedFilter;
-    }
+    /*
+     */
 
     /**
      * Check the whether feedback entry exist.
      *
      * @param feedbackId ID of the feedback entry.
      * @return isAvailable boolean.
-     */
+     *//*
     public boolean isFeedbackEntryAvailable(String feedbackId) {
 
         boolean isAvailable;
@@ -284,8 +273,7 @@ public class FeedbackMgtService {
             throw handleException(e, ERROR_FEEDBACK_NOT_FOUND, Response.Status.INTERNAL_SERVER_ERROR);
         }
         return isAvailable;
-    }
-
+    }*/
     private APIError handleException(Exception e, FeedbackMgtConstants.ErrorMessage
             errorEnum, Response.Status status, String... data) {
 
@@ -327,19 +315,33 @@ public class FeedbackMgtService {
 
         return new APIError(status, errorResponse);
     }
-
+/*
     private boolean isFilterableAttribute(String attribute) {
 
         return Arrays.stream(FilterableAttributes.values()).anyMatch(filterableAttribute -> filterableAttribute.name()
                 .equals(attribute));
     }
 
-    private enum AttributeOperators {
+    private boolean isSortableAttribute(String attribute) {
+
+        return Arrays.stream(SortableAttributes.values()).anyMatch(sortableAttribute -> sortableAttribute.name()
+                .equals(attribute));
+    }*/
+
+    /*private enum AttributeOperators {
         eq, sw, co, ew;
     }
 
     private enum FilterableAttributes {
-        email;
+        email, tag;
     }
+
+    private enum SortOrderOperators {
+        asc, desc;
+    }
+
+    private enum SortableAttributes {
+        time_created;
+    }*/
 
 }

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.rest.api.user.feedback.v1.core.function;
 
+import org.wso2.carbon.identity.api.user.common.ContextLoader;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseDTO;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseMetaDTO;
@@ -25,7 +26,6 @@ import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseMe
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.wso2.carbon.identity.api.user.common.ContextLoader.buildURI;
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.FEEDBACK_PATH_COMPONENT;
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.V1_API_PATH_COMPONENT;
 
@@ -49,7 +49,7 @@ public class FeedbackInfoToApiModel implements Function<Feedback, FeedbackRespon
         feedbackResponse.setTags(Optional.ofNullable(feedbackModelObject.getTags()).isPresent() ?
                 feedbackModelObject.getTags() : null);
 
-        feedbackMetaInfo.setLocation(buildURI(String.format(V1_API_PATH_COMPONENT + FEEDBACK_PATH_COMPONENT +
+        feedbackMetaInfo.setLocation(ContextLoader.buildURI(String.format(V1_API_PATH_COMPONENT + FEEDBACK_PATH_COMPONENT +
                 feedbackModelObject.getUuid())).toString());
         feedbackMetaInfo.setCreated(feedbackModelObject.getTimeCreated());
 

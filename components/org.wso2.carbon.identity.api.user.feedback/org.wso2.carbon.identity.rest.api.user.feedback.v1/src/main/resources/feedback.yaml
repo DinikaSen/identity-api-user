@@ -195,7 +195,7 @@ paths:
           description: User feedback data to be updated
           required: true
           schema:
-            $ref: '#/definitions/FeedbackUpdateRequest'
+            $ref: '#/definitions/FeedbackRequest'
       responses:
         '200':
           description: OK
@@ -244,27 +244,6 @@ definitions:
           type: string
           example: "issue"
 
-
-  #----------------------------------------------------
-  # The Feedbacks PUT Request Object
-  #----------------------------------------------------
-  FeedbackUpdateRequest:
-    type: object
-    properties:
-      message:
-        type: string
-        example: "This is a sample feedback"
-      email:
-        type: string
-        example: "kim@gmail.com"
-      contactNo:
-        type: string
-        example: "0123456789"
-      tags:
-        type: array
-        items:
-          type: string
-          example: "issue"
 
   #-----------------------------------------------------
   # The Feedbacks List Response Object

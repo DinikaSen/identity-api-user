@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.rest.api.user.feedback.v1;
 
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackRequestDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackUpdateRequestDTO;
 
 import javax.ws.rs.core.Response;
 
@@ -29,7 +28,7 @@ public abstract class FeedbackApiService {
 
     public abstract Response getFeedbackById(String id);
 
-    public abstract Response updateFeedback(String id, FeedbackUpdateRequestDTO body);
+    public abstract Response updateFeedback(String id, FeedbackRequestDTO body);
 
     public abstract Response addFeedback(FeedbackRequestDTO body);
 

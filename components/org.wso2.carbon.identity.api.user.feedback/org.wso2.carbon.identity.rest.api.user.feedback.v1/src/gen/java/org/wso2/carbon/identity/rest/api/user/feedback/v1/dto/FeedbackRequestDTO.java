@@ -16,14 +16,14 @@
 
 package org.wso2.carbon.identity.rest.api.user.feedback.v1.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import java.util.ArrayList;
+import java.util.List;
+import io.swagger.annotations.*;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.Pattern;
 
 @ApiModel(description = "")
 public class FeedbackRequestDTO {

@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackListResponseDTO;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackRequestDTO;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackUpdateRequestDTO;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -135,7 +134,7 @@ public class FeedbackApi  {
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
     public Response feedbackIdPut(@ApiParam(value = "feedbackID",required=true ) @PathParam("id")  String id,
-    @ApiParam(value = "User feedback data to be updated" ,required=true ) @Valid FeedbackUpdateRequestDTO body) {
+    @ApiParam(value = "User feedback data to be updated" ,required=true ) @Valid FeedbackRequestDTO body) {
 
         return delegate.updateFeedback(id,body);
     }

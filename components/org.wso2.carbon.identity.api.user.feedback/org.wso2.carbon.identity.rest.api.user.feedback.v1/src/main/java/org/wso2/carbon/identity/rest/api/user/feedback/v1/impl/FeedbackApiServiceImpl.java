@@ -17,17 +17,16 @@
 package org.wso2.carbon.identity.rest.api.user.feedback.v1.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.wso2.carbon.identity.api.user.common.ContextLoader;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.FeedbackApiService;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.core.FeedbackMgtService;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackListResponseDTO;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackRequestDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackUpdateRequestDTO;
 
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
-import static org.wso2.carbon.identity.api.user.common.ContextLoader.buildURI;
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.FEEDBACK_PATH_COMPONENT;
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.V1_API_PATH_COMPONENT;
 
@@ -41,13 +40,14 @@ public class FeedbackApiServiceImpl extends FeedbackApiService {
 
     @Override
     public Response listFeedback(String filter, Integer limit, Integer offset, String sortBy, String sortOrder) {
-        FeedbackListResponseDTO feedbackListResponse = feedbackMgtService.getFeedbacks(filter, limit, offset,
+        FeedbackListResponseDTO feedbackListResponse = feedbackMgtService.listFeedback(filter, limit, offset,
                 sortBy, sortOrder);
         return Response.ok().entity(feedbackListResponse).build();
     }
 
     @Override
     public Response deleteFeedbackById(String id) {
+
         feedbackMgtService.deleteFeedback(id);
         return Response.noContent().build();
     }
@@ -59,10 +59,9 @@ public class FeedbackApiServiceImpl extends FeedbackApiService {
     }
 
     @Override
-    public Response updateFeedback(String id, FeedbackUpdateRequestDTO updateRequest) {
+    public Response updateFeedback(String id, FeedbackRequestDTO updateRequest) {
 
-        // do some magic!
-        return Response.ok().entity("magic!").build();
+        return Response.ok().entity(feedbackMgtService.updateFeedbackEntry(id, updateRequest)).build();
     }
 
     @Override
@@ -73,6 +72,7 @@ public class FeedbackApiServiceImpl extends FeedbackApiService {
     }
 
     private URI getFeedbackLocation(String uuid) {
-        return buildURI(String.format(V1_API_PATH_COMPONENT + FEEDBACK_PATH_COMPONENT + uuid));
+        System.out.println("in mine : " + ContextLoader.buildURI(String.format(V1_API_PATH_COMPONENT + FEEDBACK_PATH_COMPONENT + uuid)).toString());
+        return ContextLoader.buildURI(String.format(V1_API_PATH_COMPONENT + FEEDBACK_PATH_COMPONENT + uuid));
     }
 }
