@@ -1,115 +1,144 @@
 /*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 package org.wso2.carbon.identity.rest.api.user.feedback.v1;
 
-import io.swagger.annotations.ApiParam;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackListResponseDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackRequestDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseDTO;
-
 import javax.validation.Valid;
-import javax.ws.rs.*;
+import javax.validation.constraints.Min;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.Error;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackListResponse;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackRequest;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackResponse;
+
 @Path("/feedback")
-@Consumes({ "application/json" })
-@Produces({ "application/json" })
-@io.swagger.annotations.Api(value = "/feedback", description = "the feedback API")
+@Api(description = "The feedback API")
+
 public class FeedbackApi  {
 
     @Autowired
     private FeedbackApiService delegate;
 
     @Valid
-    @GET
-    @Consumes({ "application/x-www-form-urlencoded" })
+    @POST
+    
+    @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve submitted feedbacks\n",
-            notes = "This API returns user feedback messages according to the specified filter, sort, and pagination parameters.\n",
-            response = FeedbackListResponseDTO.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Valid feedbacks are found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
-        
-        @io.swagger.annotations.ApiResponse(code = 403, message = "Forbidden"),
-        
-        @io.swagger.annotations.ApiResponse(code = 404, message = "No feedback found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+    @ApiOperation(value = "Add feedback.", notes = "This API is used to submit feedback given by users   <b>Permission required:</b> none ", response = Void.class, authorizations = {
+        @Authorization(value = "BasicAuth"),
+        @Authorization(value = "OAuth2", scopes = {
+            
+        })
+    }, tags={  })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Feedback submission successful", response = Void.class),
+        @ApiResponse(code = 400, message = "Bad Request.", response = Error.class),
+        @ApiResponse(code = 500, message = "Internal Server Error.", response = Error.class)
+    })
+    public Response addFeedback(@ApiParam(value = "Request to initate feedback submission. Feedback message is `REQUIRED`." ,required=true) @Valid FeedbackRequest feedbackRequest) {
 
-    public Response feedbackGet(@ApiParam(value = "Filter expression for filtering") @QueryParam("filter")  String filter,
-    @ApiParam(value = "Maximum number of records to return.", defaultValue="30") @QueryParam("limit")  Integer limit,
-    @ApiParam(value = "Number of records to skip for pagination.", defaultValue="0") @QueryParam("offset")  Integer offset,
-    @ApiParam(value = "Specifies the attribute whose value\nSHALL be used to order the returned responses") @QueryParam("sortBy")  String sortBy,
-    @ApiParam(value = "The order in which the \"sortBy\" parameter is applied.") @QueryParam("sortOder")  String sortOder) {
-
-        return delegate.listFeedback(filter,limit,offset,sortBy,sortOder);
+        return delegate.addFeedback(feedbackRequest );
     }
 
     @Valid
     @DELETE
     @Path("/{id}")
-    @Consumes({ "application/json" })
+    
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Delete a feedback by ID\n",
-            notes = "This API is used to delete a feedback by ID\n",
-            response = void.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 204, message = "No content"),
-        
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
-        
-        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
-        
-        @io.swagger.annotations.ApiResponse(code = 403, message = "Forbidden"),
-        
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+    @ApiOperation(value = "Delete a feedback by ID.", notes = "This API is used to delete a feedback by ID. ", response = Void.class, authorizations = {
+        @Authorization(value = "BasicAuth"),
+        @Authorization(value = "OAuth2", scopes = {
+            
+        })
+    }, tags={  })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 204, message = "No content", response = Void.class),
+        @ApiResponse(code = 400, message = "Bad Request.", response = Error.class),
+        @ApiResponse(code = 401, message = "Unauthorized.", response = Void.class),
+        @ApiResponse(code = 403, message = "Resource Forbidden.", response = Void.class),
+        @ApiResponse(code = 404, message = "The specified resource is not found.", response = Error.class),
+        @ApiResponse(code = 500, message = "Internal Server Error.", response = Error.class)
+    })
+    public Response deleteFeedback(@ApiParam(value = "Id of the feedback entry.",required=true) @PathParam("id") String id) {
 
-    public Response feedbackIdDelete(@ApiParam(value = "feedbackID",required=true ) @PathParam("id")  String id) {
-
-        return delegate.deleteFeedbackById(id);
+        return delegate.deleteFeedback(id );
     }
 
     @Valid
     @GET
     @Path("/{id}")
-    @Consumes({ "application/x-www-form-urlencoded" })
+    
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve a submitted feedback by ID\n",
-            notes = "This API is used to retrieve a feedback by ID.\n",
-            response = FeedbackResponseDTO.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Feedback found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
-        
-        @io.swagger.annotations.ApiResponse(code = 403, message = "Forbidden"),
-        
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+    @ApiOperation(value = "Get feedback by Id.", notes = "This API is used to retrieve a feedback by ID. ", response = FeedbackResponse.class, authorizations = {
+        @Authorization(value = "BasicAuth"),
+        @Authorization(value = "OAuth2", scopes = {
+            
+        })
+    }, tags={  })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "OK", response = FeedbackResponse.class),
+        @ApiResponse(code = 401, message = "Unauthorized.", response = Void.class),
+        @ApiResponse(code = 403, message = "Resource Forbidden.", response = Void.class),
+        @ApiResponse(code = 404, message = "The specified resource is not found.", response = Error.class),
+        @ApiResponse(code = 500, message = "Internal Server Error.", response = Error.class)
+    })
+    public Response getFeedback(@ApiParam(value = "Id of the feedback entry.",required=true) @PathParam("id") String id) {
 
-    public Response feedbackIdGet(@ApiParam(value = "This represents the ID of the user feedback",required=true ) @PathParam("id")  String id) {
+        return delegate.getFeedback(id );
+    }
 
-        return delegate.getFeedbackById(id);
+    @Valid
+    @GET
+    
+    
+    @Produces({ "application/json" })
+    @ApiOperation(value = "List feedback.", notes = "This API returns user feedback messages according to the specified filter, sort, and pagination parameters. ", response = FeedbackListResponse.class, authorizations = {
+        @Authorization(value = "BasicAuth"),
+        @Authorization(value = "OAuth2", scopes = {
+            
+        })
+    }, tags={  })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "OK", response = FeedbackListResponse.class),
+        @ApiResponse(code = 401, message = "Unauthorized.", response = Void.class),
+        @ApiResponse(code = 403, message = "Resource Forbidden.", response = Void.class),
+        @ApiResponse(code = 404, message = "The specified resource is not found.", response = Error.class),
+        @ApiResponse(code = 500, message = "Internal Server Error.", response = Error.class)
+    })
+    public Response listFeedback(    @Valid @Min(0)@ApiParam(value = "Maximum number of records to return.", defaultValue="30") @DefaultValue("30")  @QueryParam("limit") Integer limit,     @Valid @Min(0)@ApiParam(value = "Number of records to skip for pagination.", defaultValue="0") @DefaultValue("0")  @QueryParam("offset") Integer offset,     @Valid@ApiParam(value = "Condition to filter the retrival of records. Filtering is supported for \"email\" and \"tag\" only.")  @QueryParam("filter") String filter,     @Valid@ApiParam(value = "Define the order how the retrieved records should be sorted. ", allowableValues="asc, desc")  @QueryParam("sortOrder") String sortOrder,     @Valid@ApiParam(value = "Attribute by which the retrieved records should be sorted. Sorting is supported for \"time_created\" only ")  @QueryParam("sortBy") String sortBy) {
+
+        return delegate.listFeedback(limit,  offset,  filter,  sortOrder,  sortBy );
     }
 
     @Valid
@@ -117,45 +146,23 @@ public class FeedbackApi  {
     @Path("/{id}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Update a feedback entry\n",
-            notes = "This API is used to update feedback entries\n",
-            response = FeedbackResponseDTO.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
-        
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
-        
-        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
-        
-        @io.swagger.annotations.ApiResponse(code = 403, message = "Forbidden"),
-        
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+    @ApiOperation(value = "Update a feedback entry.", notes = "This API is used to update feedback entries. ", response = FeedbackResponse.class, authorizations = {
+        @Authorization(value = "BasicAuth"),
+        @Authorization(value = "OAuth2", scopes = {
+            
+        })
+    }, tags={  })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Update successful.", response = FeedbackResponse.class),
+        @ApiResponse(code = 400, message = "Bad Request.", response = Error.class),
+        @ApiResponse(code = 401, message = "Unauthorized.", response = Void.class),
+        @ApiResponse(code = 403, message = "Resource Forbidden.", response = Void.class),
+        @ApiResponse(code = 404, message = "The specified resource is not found.", response = Error.class),
+        @ApiResponse(code = 500, message = "Internal Server Error.", response = Error.class)
+    })
+    public Response updateFeedback(@ApiParam(value = "Id of the feedback entry.",required=true) @PathParam("id") String id, @ApiParam(value = "" ,required=true) @Valid FeedbackRequest feedbackRequest) {
 
-    public Response feedbackIdPut(@ApiParam(value = "feedbackID",required=true ) @PathParam("id")  String id,
-    @ApiParam(value = "User feedback data to be updated" ,required=true ) @Valid FeedbackRequestDTO body) {
-
-        return delegate.updateFeedback(id,body);
-    }
-
-    @Valid
-    @POST
-    @Consumes({ "application/json" })
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Submit a user feedback\n",
-            notes = "This API is used to submit feedback given by users\n\n <b>Permission required:</b> none\n",
-            response = void.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 201, message = "Feedback submission successful"),
-        
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
-
-    public Response feedbackPost(@ApiParam(value = "User feedback to be submitted" ,required=true ) @Valid FeedbackRequestDTO body) {
-
-        return delegate.addFeedback(body);
+        return delegate.updateFeedback(id,  feedbackRequest );
     }
 
 }

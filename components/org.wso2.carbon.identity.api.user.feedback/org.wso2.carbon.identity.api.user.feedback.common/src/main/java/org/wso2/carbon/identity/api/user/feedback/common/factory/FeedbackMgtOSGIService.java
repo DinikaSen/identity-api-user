@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.api.user.feedback.common.factory;
 
+import java.util.Hashtable;
+
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.FeedbackManagementService;
-
-import java.util.Hashtable;
 
 /**
  * Factory Beans serves as a factory for creating other beans within the IOC container. This factory bean is used to
@@ -41,7 +41,6 @@ public class FeedbackMgtOSGIService extends AbstractFactoryBean<FeedbackManageme
     protected FeedbackManagementService createInstance() throws Exception {
 
         if (this.feedbackMgtService == null) {
-            System.out.println(FeedbackManagementService.class.toString());
             FeedbackManagementService taskOperationService =
                     (FeedbackManagementService) PrivilegedCarbonContext.getThreadLocalCarbonContext()
                             .getOSGiService(FeedbackManagementService.class, (Hashtable) null);

@@ -16,63 +16,65 @@
 
 package org.wso2.carbon.identity.rest.api.user.feedback.v1.impl;
 
+import java.net.URI;
+import javax.ws.rs.core.Response;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.wso2.carbon.identity.api.user.common.ContextLoader;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.FeedbackApiService;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.core.FeedbackMgtService;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackListResponseDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackRequestDTO;
-
-import javax.ws.rs.core.Response;
-import java.net.URI;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackListResponse;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackRequest;
 
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.FEEDBACK_PATH_COMPONENT;
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.V1_API_PATH_COMPONENT;
 
 /**
-* Implementation of FeedbackApi Service.
-*/
-public class FeedbackApiServiceImpl extends FeedbackApiService {
+ * Feedback management service.
+ */
+public class FeedbackApiServiceImpl implements FeedbackApiService {
 
     @Autowired
     private FeedbackMgtService feedbackMgtService;
 
     @Override
-    public Response listFeedback(String filter, Integer limit, Integer offset, String sortBy, String sortOrder) {
-        FeedbackListResponseDTO feedbackListResponse = feedbackMgtService.listFeedback(filter, limit, offset,
-                sortBy, sortOrder);
-        return Response.ok().entity(feedbackListResponse).build();
+    public Response addFeedback(FeedbackRequest feedbackRequest) {
+
+        Feedback feedback = feedbackMgtService.addFeedbackEntry(feedbackRequest);
+        return Response.created(getFeedbackLocation(feedback.getUuid())).build();
+
     }
 
     @Override
-    public Response deleteFeedbackById(String id) {
+    public Response deleteFeedback(String id) {
 
         feedbackMgtService.deleteFeedback(id);
         return Response.noContent().build();
     }
 
     @Override
-    public Response getFeedbackById(String id) {
+    public Response getFeedback(String id) {
 
         return Response.ok().entity(feedbackMgtService.getFeedback(id)).build();
     }
 
     @Override
-    public Response updateFeedback(String id, FeedbackRequestDTO updateRequest) {
+    public Response listFeedback(Integer limit, Integer offset, String filter, String sortOrder, String sortBy) {
 
-        return Response.ok().entity(feedbackMgtService.updateFeedbackEntry(id, updateRequest)).build();
+        FeedbackListResponse feedbackListResponse = feedbackMgtService.listFeedback(filter, limit, offset,
+                sortBy, sortOrder);
+        return Response.ok().entity(feedbackListResponse).build();
     }
 
     @Override
-    public Response addFeedback(FeedbackRequestDTO feedbackRequest) {
+    public Response updateFeedback(String id, FeedbackRequest feedbackRequest) {
 
-        Feedback feedback = feedbackMgtService.addFeedbackEntry(feedbackRequest);
-        return Response.created(getFeedbackLocation(feedback.getUuid())).build();
+        return Response.ok().entity(feedbackMgtService.updateFeedbackEntry(id, feedbackRequest)).build();
     }
 
     private URI getFeedbackLocation(String uuid) {
-        System.out.println("in mine : " + ContextLoader.buildURI(String.format(V1_API_PATH_COMPONENT + FEEDBACK_PATH_COMPONENT + uuid)).toString());
+
         return ContextLoader.buildURI(String.format(V1_API_PATH_COMPONENT + FEEDBACK_PATH_COMPONENT + uuid));
     }
 }

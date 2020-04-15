@@ -16,6 +16,9 @@
 
 package org.wso2.carbon.identity.api.user.common;
 
+import java.net.URI;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -25,11 +28,10 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
 
-import javax.ws.rs.core.Response;
-import java.net.URI;
-
 import static org.wso2.carbon.identity.api.user.common.Constants.ErrorMessage.ERROR_CODE_INVALID_USERNAME;
-import static org.wso2.carbon.identity.api.user.common.Constants.*;
+import static org.wso2.carbon.identity.api.user.common.Constants.TENANT_CONTEXT_PATH_COMPONENT;
+import static org.wso2.carbon.identity.api.user.common.Constants.TENANT_NAME_FROM_CONTEXT;
+import static org.wso2.carbon.identity.api.user.common.Constants.USER_API_PATH_COMPONENT;
 
 /**
  * Load information from context

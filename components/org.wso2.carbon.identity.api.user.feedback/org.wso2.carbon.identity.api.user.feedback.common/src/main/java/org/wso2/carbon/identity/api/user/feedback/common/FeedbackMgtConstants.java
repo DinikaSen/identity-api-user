@@ -32,34 +32,24 @@ public class FeedbackMgtConstants {
     }
 
     /**
-     * Enum for error messages.
+     * Enum for feedback management service related errors in the format of,
+     * Error Code - code to identify the error
+     * Error Message - What went wrong
+     * Error Description - Why it went wrong
      */
     public enum ErrorMessage {
-        ERROR_CODE_ERROR_LISTING_FEEDBACK("65001", "Unable to list existing user feedbacks.",
-                "Server encountered an error while listing the user feedback entries."),
-        ERROR_CODE_ERROR_ADDING_FEEDBACK("65002", "Unable to add user feedback entry.",
+        ERROR_CODE_ERROR_ADDING_FEEDBACK("15001", "Unable to add user feedback entry.",
                 "Server encountered an error while adding the user feedback entry."),
-        ERROR_CODE_ERROR_DELETING_FEEDBACK("65004", "Unable to delete feedback entry.",
-                "Server encountered an error while deleting the feedback entry for the ID %s."),
-        ERROR_CODE_ERROR_RETRIEVING_FEEDBACK("65003", "Unable to retrieve feedback entry.",
+        ERROR_CODE_ERROR_LISTING_FEEDBACK("15002", "Unable to list existing user feedback.",
+                "Server encountered an error while listing the user feedback entries."),
+        ERROR_CODE_ERROR_RETRIEVING_FEEDBACK("15003", "Unable to retrieve feedback entry.",
                 "Server encountered an error while retrieving the feedback entry for ID %s."),
-        ERROR_CODE_ERROR_UPDATING_FEEDBACK("65005", "Unable to update feedback entry.",
+        ERROR_CODE_ERROR_DELETING_FEEDBACK("15004", "Unable to delete feedback entry.",
+                "Server encountered an error while deleting the feedback entry for the ID %s."),
+        ERROR_CODE_ERROR_UPDATING_FEEDBACK("15005", "Unable to update feedback entry.",
                 "Server encountered an error while updating the feedback entry for ID %s."),
-        ERROR_FEEDBACK_NOT_FOUND("60006", "Feedback not found.",
-                "Feedback cannot be found for the provided ID: %s."),
-        ERROR_CODE_UNSUPPORTED_FILTER_OPERATION("10002",
-                "Filter operation not supported.",
-                "Filter operation: %s is not supported."),
-        ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE("10003", "Filtering not supported for the given attribute.",
-                "Filtering from %s is not supported."),
-        ERROR_CODE_UNSUPPORTED_SORT_BY_ATTRIBUTE("10003", "Sorting not supported for the given attribute.",
-                "Sorting by %s is not supported."),
-        ERROR_CODE_INVALID_SORT_ORDER("10003", "Sort order parameter is invalid.",
-                "Sort order %s is invalid. Only 'asc' and 'desc' are supported"),
-        ERROR_CODE_INVALID_FILTER_QUERY("10004", "Invalid filter query.",
-                "Provided filter query is invalid."),
-        ERROR_FEEDBACK_OFFSET_VALIDATION("60009", "Invalid offset.",
-                "Offset should be greater than or equal to 0");
+        ERROR_FEEDBACK_NOT_FOUND("10001", "Feedback not found.",
+                "Feedback cannot be found for the provided ID: %s.");
 
         private final String code;
         private final String message;

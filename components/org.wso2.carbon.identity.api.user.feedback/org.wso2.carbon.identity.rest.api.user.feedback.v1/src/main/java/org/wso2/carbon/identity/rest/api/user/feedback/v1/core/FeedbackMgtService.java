@@ -17,6 +17,11 @@
  */
 package org.wso2.carbon.identity.rest.api.user.feedback.v1.core;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -29,20 +34,17 @@ import org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtServiceHolde
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import org.wso2.carbon.identity.rest.api.user.feedback.v1.core.function.FeedbackInfoToApiModel;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackListResponseDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackRequestDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.LinkDTO;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackListResponse;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackRequest;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackResponse;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.Link;
 
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.ErrorMessage.*;
+import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_DELETING_FEEDBACK;
+import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_FEEDBACK;
+import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.ErrorMessage.ERROR_FEEDBACK_NOT_FOUND;
 
 /**
- * Call internal OSGI services to perform username feedback management operations.
+ * Call internal OSGI services to perform user feedback management operations.
  */
 public class FeedbackMgtService {
 
@@ -55,12 +57,12 @@ public class FeedbackMgtService {
      * Add a user feedback entry.
      *
      * @param feedbackPostRequest FeedbackObjectDTO object.
+     * @return Created Feedback instance
      */
-    public Feedback addFeedbackEntry(FeedbackRequestDTO feedbackPostRequest) {
+    public Feedback addFeedbackEntry(FeedbackRequest feedbackPostRequest) {
 
         Feedback feedback = createFeedbackObject(feedbackPostRequest);
         try {
-
             Feedback feedbackResult =
                     FeedbackMgtServiceHolder.getFeedbackManagementService().createFeedbackEntry(feedback);
             return feedbackResult;
@@ -72,11 +74,17 @@ public class FeedbackMgtService {
 
     /**
      * List user feedback entries.
+     *
+     * @param limit     maximum no of feedback entries to be returned in the result set (optional).
+     * @param offset    zero based index of the first feedback entry to be returned in the result set (optional).
+     * @param filter    filter to search for feedback entries (optional).
+     * @param sortOrder sort order, ascending or descending (optional).
+     * @param sortBy    attribute to sort from (optional).
+     * @return List of feedback entries matching the given criteria.
      */
-    public FeedbackListResponseDTO listFeedback(String filter, int limit, int offset, String sortBy,
-                                                String sortOrder) {
+    public FeedbackListResponse listFeedback(String filter, int limit, int offset, String sortBy,
+                                             String sortOrder) {
 
-//        validateSortingParameters(sortBy, sortOrder);
         try {
             List<Feedback> feedbackInfoList = FeedbackMgtServiceHolder.getFeedbackManagementService().
                     listFeedbackEntries(filter, limit, offset, sortBy, sortOrder);
@@ -85,7 +93,7 @@ public class FeedbackMgtService {
             return buildFeedbackListResponse(limit, offset, totalResults, feedbackInfoList);
 
         } catch (FeedbackManagementException e) {
-            throw handleException(e, FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_RETRIEVING_FEEDBACK,
+            throw handleException(e, FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_LISTING_FEEDBACK,
                     Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -93,10 +101,10 @@ public class FeedbackMgtService {
     /**
      * Get feedback by Feedback ID.
      *
-     * @param feedbackId unique identifier of the feedback
-     * @return a Feedback instance.
+     * @param feedbackId unique identifier of the feedback.
+     * @return Feedback instance for the given ID.
      */
-    public FeedbackResponseDTO getFeedback(String feedbackId) {
+    public FeedbackResponse getFeedback(String feedbackId) {
 
         try {
             Feedback feedbackInfo =
@@ -107,50 +115,62 @@ public class FeedbackMgtService {
             }
             return buildFeedbackResponse(feedbackInfo);
         } catch (FeedbackManagementException e) {
-            throw handleException(e, ERROR_CODE_ERROR_RETRIEVING_FEEDBACK, Response.Status.INTERNAL_SERVER_ERROR);
+            throw handleException(e, ERROR_CODE_ERROR_RETRIEVING_FEEDBACK, Response.Status.INTERNAL_SERVER_ERROR,
+                    feedbackId);
         }
     }
 
     /**
      * Delete a feedback entry.
      *
-     * @param feedbackId feedback entry ID.
+     * @param feedbackId unique identifier of the feedback.
      */
     public void deleteFeedback(String feedbackId) {
 
         try {
+            Feedback feedbackInfo = FeedbackMgtServiceHolder.getFeedbackManagementService().
+                            getFeedbackEntry(feedbackId);
+            if (feedbackInfo == null) {
+                throw handleNotFoundError(feedbackId, ERROR_FEEDBACK_NOT_FOUND);
+            }
             FeedbackMgtServiceHolder.getFeedbackManagementService().deleteFeedbackEntry(feedbackId);
         } catch (FeedbackManagementException e) {
-            throw handleException(e, ERROR_CODE_ERROR_DELETING_FEEDBACK, Response.Status.INTERNAL_SERVER_ERROR);
+            throw handleException(e, ERROR_CODE_ERROR_DELETING_FEEDBACK, Response.Status.INTERNAL_SERVER_ERROR,
+                    feedbackId);
         }
-
     }
 
     /**
      * Update a user feedback entry.
      *
-     * @param updateRequestDTO FeedbackObjectDTO object.
+     * @param feedbackId       unique identifier of the feedback.
+     * @param updateRequestDTO FeedbackObjectDTO object with new data.
+     * @return Updated Feedback instance
      */
-    public FeedbackResponseDTO updateFeedbackEntry(String feedbackId, FeedbackRequestDTO updateRequestDTO) {
+    public FeedbackResponse updateFeedbackEntry(String feedbackId, FeedbackRequest updateRequestDTO) {
 
-        Feedback feedback = createFeedbackObject(updateRequestDTO);
         try {
-            Feedback feedbackResult =
-                    FeedbackMgtServiceHolder.getFeedbackManagementService().updateFeedbackEntry(feedbackId, feedback);
+            Feedback feedbackToBeUpdated =
+                    FeedbackMgtServiceHolder.getFeedbackManagementService().getFeedbackEntry(feedbackId);
+            if (feedbackToBeUpdated == null) {
+                throw handleNotFoundError(feedbackId, ERROR_FEEDBACK_NOT_FOUND);
+            }
+            Feedback feedbackResult = FeedbackMgtServiceHolder.getFeedbackManagementService()
+                    .updateFeedbackEntry(feedbackId, createFeedbackObject(updateRequestDTO));
             return buildFeedbackResponse(feedbackResult);
         } catch (FeedbackManagementException e) {
-            throw handleException(e, FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_ADDING_FEEDBACK,
-                    Response.Status.INTERNAL_SERVER_ERROR);
+            throw handleException(e, FeedbackMgtConstants.ErrorMessage.ERROR_CODE_ERROR_UPDATING_FEEDBACK,
+                    Response.Status.INTERNAL_SERVER_ERROR, feedbackId);
         }
     }
 
     /**
-     * Create feedback object.
+     * Create feedback object from feedback request.
      *
      * @param feedbackRequest FeedbackObjectDTO
-     * @return feedback Feedback Object
+     * @return Feedback Object
      */
-    private Feedback createFeedbackObject(FeedbackRequestDTO feedbackRequest) {
+    private Feedback createFeedbackObject(FeedbackRequest feedbackRequest) {
 
         Feedback feedback = new Feedback();
         feedback.setMessage(feedbackRequest.getMessage());
@@ -169,19 +189,34 @@ public class FeedbackMgtService {
         return feedback;
     }
 
-    private FeedbackResponseDTO buildFeedbackResponse(Feedback feedbackInfoModel) {
+    /**
+     * Build response object from feedback object.
+     *
+     * @param feedbackInfoModel Feedback object
+     * @return FeedbackResponse instance
+     */
+    private FeedbackResponse buildFeedbackResponse(Feedback feedbackInfoModel) {
 
         return new FeedbackInfoToApiModel().apply(feedbackInfoModel);
     }
 
-    private FeedbackListResponseDTO buildFeedbackListResponse(int limit, int offset, int total,
-                                                              List<Feedback> feedbackInfos) {
+    /**
+     * Build feedback list response from feedback entries retrieved.
+     *
+     * @param limit         max entries in list
+     * @param offset        index of first feedback entry
+     * @param total         total number of entries matching list criteria
+     * @param feedbackInfos list of feedback objects retrieved
+     * @return FeedbackListResponse instance
+     */
+    private FeedbackListResponse buildFeedbackListResponse(int limit, int offset, int total,
+                                                           List<Feedback> feedbackInfos) {
 
-        List<FeedbackResponseDTO> feedbackInfoList = buildFeedbackListResponses(feedbackInfos);
-        List<LinkDTO> feedbackResponseLinks = buildPaginationLinks(limit, offset, total);
-        FeedbackListResponseDTO feedbackListResponse = new FeedbackListResponseDTO();
+        List<FeedbackResponse> feedbackInfoList = buildFeedbackListResponses(feedbackInfos);
+        List<Link> feedbackResponseLinks = buildPaginationLinks(limit, offset, total);
+        FeedbackListResponse feedbackListResponse = new FeedbackListResponse();
         feedbackListResponse.setResources(feedbackInfoList);
-        feedbackListResponse.setItemsPerPage(feedbackInfoList.size());
+        feedbackListResponse.setCount(feedbackInfoList.size());
         feedbackListResponse.setStartIndex(offset + 1);
         feedbackListResponse.setTotalResults(total);
         feedbackListResponse.setLinks(feedbackResponseLinks);
@@ -189,14 +224,22 @@ public class FeedbackMgtService {
         return feedbackListResponse;
     }
 
-    private List<FeedbackResponseDTO> buildFeedbackListResponses(List<Feedback> feedbackInfoList) {
+    private List<FeedbackResponse> buildFeedbackListResponses(List<Feedback> feedbackInfoList) {
 
         return feedbackInfoList.stream().map(new FeedbackInfoToApiModel()).collect(Collectors.toList());
     }
 
-    private List<LinkDTO> buildPaginationLinks(int limit, int offset, int total) {
+    /**
+     * Build pagination links.
+     *
+     * @param limit  max entries in a single list
+     * @param offset zero-based starting index
+     * @param total  total number of entries in all pages
+     * @return Links to previous and next pages
+     */
+    private List<Link> buildPaginationLinks(int limit, int offset, int total) {
 
-        List<LinkDTO> links = new ArrayList<>();
+        List<Link> links = new ArrayList<>();
 
         // Next Link
         if ((offset + limit) < total) {
@@ -227,64 +270,18 @@ public class FeedbackMgtService {
         return calculateOffsetForPreviousLink(newOffset, limit, total);
     }
 
-    private LinkDTO buildPageLink(String rel, int offset, int limit) {
-        LinkDTO links = new LinkDTO();
+    private Link buildPageLink(String rel, int offset, int limit) {
+
+        Link links = new Link();
         links.setRel(rel);
-        links.setHref(ContextLoader.buildURI(String.format(FEEDBACK_PAGINATION_LINK_FORMAT, offset, limit)).toString());
+        links.setHref(ContextLoader.buildURI(String.format(FEEDBACK_PAGINATION_LINK_FORMAT, offset, limit)));
         return links;
     }
 
- /*   private boolean validateSortingParameters(String sortBy, String sortOrder) {
-
-        boolean isValid = false;
-        if (StringUtils.isNotBlank(sortBy) && StringUtils.isNotBlank(sortOrder)) {
-            if (isSortableAttribute(sortBy)) {
-                if (isSortableAttribute(sortBy)) {
-                    isValid = true;
-                } else {
-                    throw buildError(ERROR_CODE_INVALID_SORT_ORDER, Response.Status.BAD_REQUEST,
-                            sortOrder);
-                }
-            } else {
-                throw buildError(ERROR_CODE_UNSUPPORTED_SORT_BY_ATTRIBUTE, Response.Status.BAD_REQUEST,
-                        sortBy);
-            }
-
-        }
-        return isValid;
-    }*/
-
-    /*
-     */
-
-    /**
-     * Check the whether feedback entry exist.
-     *
-     * @param feedbackId ID of the feedback entry.
-     * @return isAvailable boolean.
-     *//*
-    public boolean isFeedbackEntryAvailable(String feedbackId) {
-
-        boolean isAvailable;
-        try {
-            isAvailable =
-                    FeedbackMgtServiceHolder.getFeedbackManagementService().isFeedbackAvailable(feedbackId);
-        } catch (FeedbackManagementException e) {
-            throw handleException(e, ERROR_FEEDBACK_NOT_FOUND, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        return isAvailable;
-    }*/
     private APIError handleException(Exception e, FeedbackMgtConstants.ErrorMessage
             errorEnum, Response.Status status, String... data) {
 
         ErrorResponse errorResponse = getErrorBuilder(errorEnum, data).build(LOG, e, errorEnum.getDescription());
-        return new APIError(status, errorResponse);
-    }
-
-    private APIError buildError(FeedbackMgtConstants.ErrorMessage
-                                        errorEnum, Response.Status status, String... data) {
-
-        ErrorResponse errorResponse = getErrorBuilder(errorEnum, data).build(LOG, null, errorEnum.getDescription());
         return new APIError(status, errorResponse);
     }
 
@@ -315,33 +312,5 @@ public class FeedbackMgtService {
 
         return new APIError(status, errorResponse);
     }
-/*
-    private boolean isFilterableAttribute(String attribute) {
-
-        return Arrays.stream(FilterableAttributes.values()).anyMatch(filterableAttribute -> filterableAttribute.name()
-                .equals(attribute));
-    }
-
-    private boolean isSortableAttribute(String attribute) {
-
-        return Arrays.stream(SortableAttributes.values()).anyMatch(sortableAttribute -> sortableAttribute.name()
-                .equals(attribute));
-    }*/
-
-    /*private enum AttributeOperators {
-        eq, sw, co, ew;
-    }
-
-    private enum FilterableAttributes {
-        email, tag;
-    }
-
-    private enum SortOrderOperators {
-        asc, desc;
-    }
-
-    private enum SortableAttributes {
-        time_created;
-    }*/
 
 }

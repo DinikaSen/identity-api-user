@@ -18,27 +18,27 @@
 
 package org.wso2.carbon.identity.rest.api.user.feedback.v1.core.function;
 
-import org.wso2.carbon.identity.api.user.common.ContextLoader;
-import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseDTO;
-import org.wso2.carbon.identity.rest.api.user.feedback.v1.dto.FeedbackResponseMetaDTO;
-
 import java.util.Optional;
 import java.util.function.Function;
+
+import org.wso2.carbon.identity.api.user.common.ContextLoader;
+import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackResponse;
+import org.wso2.carbon.identity.rest.api.user.feedback.v1.model.FeedbackResponseMeta;
 
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.FEEDBACK_PATH_COMPONENT;
 import static org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtConstants.V1_API_PATH_COMPONENT;
 
 /**
- * Converts the internal {@link Feedback} model to corresponding API model {@link FeedbackResponseDTO}.
+ * Converts the internal {@link Feedback} model to corresponding API model {@link FeedbackResponse}.
  */
-public class FeedbackInfoToApiModel implements Function<Feedback, FeedbackResponseDTO> {
+public class FeedbackInfoToApiModel implements Function<Feedback, FeedbackResponse> {
 
     @Override
-    public FeedbackResponseDTO apply(Feedback feedbackModelObject) {
+    public FeedbackResponse apply(Feedback feedbackModelObject) {
 
-        FeedbackResponseDTO feedbackResponse = new FeedbackResponseDTO();
-        FeedbackResponseMetaDTO feedbackMetaInfo = new FeedbackResponseMetaDTO();
+        FeedbackResponse feedbackResponse = new FeedbackResponse();
+        FeedbackResponseMeta feedbackMetaInfo = new FeedbackResponseMeta();
 
         feedbackResponse.setId(feedbackModelObject.getUuid());
         feedbackResponse.setMessage(feedbackModelObject.getMessage());

@@ -17,12 +17,12 @@
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-<bean class="org.wso2.carbon.identity.rest.api.user.feedback.v1.impl.FeedbackApiServiceImpl"/>
-<bean class="org.wso2.carbon.identity.rest.api.user.feedback.v1.core.FeedbackMgtService"/>
-<bean id="feedbackMgtServiceHolderBean"
-      class="org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtServiceHolder">
-    <property name="FeedbackManagementService" ref="feedbackManagementServiceFactoryBean"/>
-</bean>
-<bean id="feedbackManagementServiceFactoryBean"
-      class="org.wso2.carbon.identity.api.user.feedback.common.factory.FeedbackMgtOSGIService"/>
+    <bean class="org.wso2.carbon.identity.rest.api.user.feedback.v1.impl.FeedbackApiServiceImpl"/>
+    <bean class="org.wso2.carbon.identity.rest.api.user.feedback.v1.core.FeedbackMgtService"/>
+    <bean id="feedbackMgtServiceHolderBean"
+          class="org.wso2.carbon.identity.api.user.feedback.common.FeedbackMgtServiceHolder">
+        <property name="FeedbackManagementService" ref="feedbackManagementServiceFactoryBean"/>
+    </bean>
+    <bean id="feedbackManagementServiceFactoryBean"
+          class="org.wso2.carbon.identity.api.user.feedback.common.factory.FeedbackMgtOSGIService"/>
 </beans>
